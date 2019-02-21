@@ -37,11 +37,7 @@ const requestPermissions = async (
       PermissionsAndroid.PERMISSIONS.CAMERA,
       params,
     );
-    if (typeof cameraPermissionResult === 'boolean') {
-      hasCameraPermissions = cameraPermissionResult;
-    } else {
-      hasCameraPermissions = cameraPermissionResult === PermissionsAndroid.RESULTS.GRANTED;
-    }
+    hasCameraPermissions = cameraPermissionResult === PermissionsAndroid.RESULTS.GRANTED;
   }
 
   if (captureAudio) {
@@ -53,11 +49,7 @@ const requestPermissions = async (
           PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
           params,
         );
-        if (typeof audioPermissionResult === 'boolean') {
-          hasRecordAudioPermissions = audioPermissionResult
-        } else {
-          hasRecordAudioPermissions = audioPermissionResult === PermissionsAndroid.RESULTS.GRANTED;
-        }
+        hasRecordAudioPermissions = audioPermissionResult === PermissionsAndroid.RESULTS.GRANTED;
       } else if (__DEV__) {
         // eslint-disable-next-line no-console
         console.warn(
@@ -147,6 +139,7 @@ type PropsType = typeof View.props & {
   onBarCodeRead?: Function,
   onPictureSaved?: Function,
   onGoogleVisionBarcodesDetected?: Function,
+  onFirebaseVisionBarcodesDetected?: Function,
   faceDetectionMode?: number,
   flashMode?: number | string,
   barCodeTypes?: Array<string>,
@@ -239,6 +232,7 @@ export default class Camera extends React.Component<PropsType, StateType> {
     VideoQuality: CameraManager.VideoQuality,
     VideoCodec: CameraManager.VideoCodec,
     BarCodeType: CameraManager.BarCodeType,
+    FirebaseBarCodeType: CameraManager.FirebaseBarCodeType,
     GoogleVisionBarcodeDetection: CameraManager.GoogleVisionBarcodeDetection,
     FaceDetection: CameraManager.FaceDetection,
     CameraStatus,
@@ -277,12 +271,14 @@ export default class Camera extends React.Component<PropsType, StateType> {
     onBarCodeRead: PropTypes.func,
     onPictureSaved: PropTypes.func,
     onGoogleVisionBarcodesDetected: PropTypes.func,
+    onFirebaseVisionBarcodesDetected: PropTypes.func,
     onFacesDetected: PropTypes.func,
     onTextRecognized: PropTypes.func,
     faceDetectionMode: PropTypes.number,
     faceDetectionLandmarks: PropTypes.number,
     faceDetectionClassifications: PropTypes.number,
     barCodeTypes: PropTypes.arrayOf(PropTypes.string),
+    firebaseBarCodeTypes: PropTypes.arrayOf(PropTypes.string),
     googleVisionBarcodeType: PropTypes.number,
     googleVisionBarcodeMode: PropTypes.number,
     type: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
@@ -579,6 +575,9 @@ export default class Camera extends React.Component<PropsType, StateType> {
             onGoogleVisionBarcodesDetected={this._onObjectDetected(
               this.props.onGoogleVisionBarcodesDetected,
             )}
+            onFirebaseVisionBarcodesDetected={this._onObjectDetected(
+              this.props.onFirebaseVisionBarcodesDetected,
+            )}
             onBarCodeRead={this._onObjectDetected(this.props.onBarCodeRead)}
             onFacesDetected={this._onObjectDetected(this.props.onFacesDetected)}
             onTextRecognized={this._onObjectDetected(this.props.onTextRecognized)}
@@ -603,6 +602,10 @@ export default class Camera extends React.Component<PropsType, StateType> {
 
     if (props.onGoogleVisionBarcodesDetected) {
       newProps.googleVisionBarcodeDetectorEnabled = true;
+    }
+
+    if (props.onFirebaseVisionBarcodesDetected) {
+      newProps.firebaseVisionBarcodeDetectorEnabled = true;
     }
 
     if (props.onFacesDetected) {
@@ -641,11 +644,13 @@ const RNCamera = requireNativeComponent('RNCamera', Camera, {
     accessibilityLiveRegion: true,
     barCodeScannerEnabled: true,
     googleVisionBarcodeDetectorEnabled: true,
+    firebaseVisionBarcodeDetectorEnabled: true,
     faceDetectorEnabled: true,
     textRecognizerEnabled: true,
     importantForAccessibility: true,
     onBarCodeRead: true,
     onGoogleVisionBarcodesDetected: true,
+    onFirebaseVisionBarcodesDetected: true,
     onCameraReady: true,
     onPictureSaved: true,
     onFaceDetected: true,
